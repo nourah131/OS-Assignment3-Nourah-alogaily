@@ -94,6 +94,7 @@ class Process implements Runnable {
         this.timeQuantum = timeQuantum;
         this.remainingTime = burstTime;
         this.priority = priority;
+        SharedResources.cpuSemaphore.acquire();
         this.creationTime = System.currentTimeMillis();
         this.startTime = -1;
     }
@@ -156,6 +157,7 @@ class Process implements Runnable {
                 SharedResources.addWaitingTime(waitingTime);
                 SharedResources.incrementCompletedProcess();
                 SharedResources.logExecution(name + " completed execution");
+                SharedResources.cpuSemaphore.release();
                 System.out.println(Colors.BRIGHT_GREEN + "  ✓ " + Colors.BOLD + Colors.CYAN + name + 
                                   Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" + 
                                   Colors.RESET);
