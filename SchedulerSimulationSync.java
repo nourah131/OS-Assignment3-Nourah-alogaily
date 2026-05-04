@@ -34,7 +34,6 @@ class SharedResources {
     public static int completedProcessCount = 0;   // Shared counter - NEEDS PROTECTION!
     public static long totalWaitingTime = 0;       // Shared accumulator - NEEDS PROTECTION!
     public static List<String> executionLog = new ArrayList<>();  // Shared list - NEEDS PROTECTION!
-    
     // TODO #1: Add a ReentrantLock(s) here to protect critical sections
     // Example: public static final ReentrantLock lock = new ReentrantLock();
     
@@ -42,12 +41,12 @@ class SharedResources {
     // Example: public static final Semaphore cpuSemaphore = new Semaphore(1);
       // This lock protects all shared counters and the execution log
     public static final ReentrantLock sharedLock = new ReentrantLock();
+    public static final Semaphore cpuSemaphore = new Semaphore(1);
     // Method to increment context switch counter
     public static void incrementContextSwitch() {
         // TODO: Protect this critical section with a lock
         // RACE CONDITION: Multiple threads might read and write simultaneously!
         // This semaphore allows only one process to use the CPU at a time
-    public static final Semaphore cpuSemaphore = new Semaphore(1);
       // Lock before updating the shared context switch counter
      sharedLock.lock();
     try {
@@ -94,7 +93,6 @@ class Process implements Runnable {
         this.timeQuantum = timeQuantum;
         this.remainingTime = burstTime;
         this.priority = priority;
-        SharedResources.cpuSemaphore.acquire();
         this.creationTime = System.currentTimeMillis();
         this.startTime = -1;
     }
@@ -105,6 +103,7 @@ class Process implements Runnable {
         // This ensures only allowed number of processes run simultaneously
         
         try {
+            SharedResources.cpuSemaphore.acquire();
             if (startTime == -1) {
                 startTime = System.currentTimeMillis();
             }
@@ -157,7 +156,6 @@ class Process implements Runnable {
                 SharedResources.addWaitingTime(waitingTime);
                 SharedResources.incrementCompletedProcess();
                 SharedResources.logExecution(name + " completed execution");
-                SharedResources.cpuSemaphore.release();
                 System.out.println(Colors.BRIGHT_GREEN + "  ✓ " + Colors.BOLD + Colors.CYAN + name + 
                                   Colors.RESET + Colors.BRIGHT_GREEN + " finished execution!" + 
                                   Colors.RESET);
@@ -179,7 +177,6 @@ class Process implements Runnable {
             if (i < filled) {
                 bar.append(Colors.GREEN + "█" + Colors.RESET);
                 // Acquire the CPU permit before running the final process
-                SharedResources.cpuSemaphore.acquire();
             } else {
                 bar.append(Colors.WHITE + "░" + Colors.RESET);
             }
