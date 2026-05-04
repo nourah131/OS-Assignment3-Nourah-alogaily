@@ -167,6 +167,8 @@ class Process implements Runnable {
         } finally {
             // TODO #4: Release CPU semaphore here
             // Always release in finally block to prevent deadlocks!
+            // Release the CPU permit after the final process finishes
+           SharedResources.cpuSemaphore.release();
         }
     }
     
@@ -176,6 +178,8 @@ class Process implements Runnable {
         for (int i = 0; i < width; i++) {
             if (i < filled) {
                 bar.append(Colors.GREEN + "█" + Colors.RESET);
+                // Acquire the CPU permit before running the final process
+                SharedResources.cpuSemaphore.acquire();
             } else {
                 bar.append(Colors.WHITE + "░" + Colors.RESET);
             }
