@@ -48,7 +48,13 @@ class SharedResources {
         // RACE CONDITION: Multiple threads might read and write simultaneously!
         // This semaphore allows only one process to use the CPU at a time
     public static final Semaphore cpuSemaphore = new Semaphore(1);
-        contextSwitchCount++;
+      // Lock before updating the shared context switch counter
+     sharedLock.lock();
+    try {
+       contextSwitchCount++;
+    } finally {
+      sharedLock.unlock();
+     }
     }
     
     // Method to increment completed process counter
